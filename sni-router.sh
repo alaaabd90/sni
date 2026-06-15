@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.2  — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.3  — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.2"
+VERSION="2.2.3"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ global
     log /dev/log local0 info
     stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
     stats timeout 30s
-    tune.bufsize 32768
+    tune.bufsize 65536
 
 defaults
     log global
