@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.7  — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.8  — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.7"
+VERSION="2.2.8"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -130,10 +130,12 @@ defaults
     log global
     option dontlognull
     option splice-auto
-    timeout connect  3s
-    timeout client   10m
-    timeout server   10m
-    timeout tunnel   1h
+    timeout connect     3s
+    timeout client      10m
+    timeout server      10m
+    timeout tunnel      1h
+    timeout client-fin  10s
+    timeout server-fin  10s
 
 frontend ft_stats
     bind 127.0.0.1:8404
