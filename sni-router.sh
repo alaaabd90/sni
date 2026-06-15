@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.8"
+VERSION="2.2.9"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -130,6 +130,7 @@ defaults
     log global
     option dontlognull
     option splice-auto
+    option tcpka
     timeout connect     3s
     timeout client      10m
     timeout server      10m
@@ -250,6 +251,7 @@ GLOBAL
 apply_config() {
     [[ -d /run/haproxy ]] || { mkdir -p /run/haproxy; chown haproxy:haproxy /run/haproxy 2>/dev/null || true; }
     generate_haproxy_config
+    tune_sysctl
     if haproxy -c -f "$HAPROXY_CFG" &>/dev/null; then
         systemctl reload haproxy 2>/dev/null || systemctl restart haproxy 2>/dev/null
         echo "$(date '+%Y-%m-%d %H:%M:%S') Config reloaded OK" >> "$LOG_FILE"
@@ -822,6 +824,20 @@ do_clean_old() {
     [[ -z "$silent" ]] && info "Old installation removed."
 }
 
+tune_sysctl() {
+    # Tune TCP keepalive: start probing after 60s idle (default is 7200s — 2 hours).
+    # This keeps carrier NAT mappings alive so idle VPN connections resume instantly.
+    local conf="/etc/sysctl.d/99-sni-router.conf"
+    cat > "$conf" <<'EOF'
+# SNI Router — TCP keepalive tuning
+# Keeps carrier NAT mappings alive on idle VPN connections
+net.ipv4.tcp_keepalive_time  = 60
+net.ipv4.tcp_keepalive_intvl = 10
+net.ipv4.tcp_keepalive_probes = 3
+EOF
+    sysctl -p "$conf" &>/dev/null || true
+}
+
 # ─────────────────────────────────────────────────────────────────
 #  INSTALL
 # ─────────────────────────────────────────────────────────────────
@@ -914,6 +930,10 @@ SVCEOF
         systemctl status haproxy --no-pager | head -20
         exit 1
     fi
+
+    # ── Step 6b: Tune TCP keepalive ──────────────────────────────
+    tune_sysctl
+    info "TCP keepalive tuned (idle probe starts after 60s)"
 
     # ── Step 7: Install sni command ───────────────────────────────
     # Handle both file-based and piped installs (bash <(curl ...))
