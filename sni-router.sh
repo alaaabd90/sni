@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.1  — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.2  — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.1"
+VERSION="2.2.2"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -156,7 +156,10 @@ GLOBAL
             echo "    option tcplog"
             echo "    tcp-request inspect-delay 3s"
             echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
-            echo "    tcp-request content accept if WAIT_END"
+            # Reject non-TLS before use_backend (correct HAProxy ordering — no warning)
+            if [[ -z "$def443" ]]; then
+                echo "    tcp-request content reject"
+            fi
             echo ""
         } >> "$tmpfile"
 
@@ -169,9 +172,6 @@ GLOBAL
 
         if [[ -n "$def443" ]]; then
             echo "    default_backend bk443_default" >> "$tmpfile"
-        else
-            # No default: reject unmatched connections cleanly (no port-1 errors in logs)
-            echo "    tcp-request content reject" >> "$tmpfile"
         fi
         echo "" >> "$tmpfile"
 
