@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.15 — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.16 — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.15"
+VERSION="2.2.16"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 REPO_API="https://api.github.com/repos/alaaabd90/sni/contents/sni-router.sh"
 
@@ -581,13 +581,25 @@ action_toggle_both() {
     case "$opt" in
         1)
             state_set "enabled_443" "1"; state_set "enabled_80" "1"
-            apply_config && info "Both ports enabled!" || err "Reload failed"
+            if apply_config; then
+                info "Both ports enabled!"
+            else
+                err "Reload failed"
+                state_set "enabled_443" "0"; state_set "enabled_80" "0"
+                apply_config || true
+            fi
             ;;
         2)
             state_set "enabled_443" "0"; state_set "enabled_80" "0"
-            apply_config && info "Both ports disabled." || err "Reload failed"
-            echo -e "\n  ${Y}You can now bind 0.0.0.0:443 and 0.0.0.0:80 directly in your panel.${NC}"
-            echo -e "  ${Y}Re-enable anytime from this menu — all routes are preserved.${NC}"
+            if apply_config; then
+                info "Both ports disabled."
+                echo -e "\n  ${Y}You can now bind 0.0.0.0:443 and 0.0.0.0:80 directly in your panel.${NC}"
+                echo -e "  ${Y}Re-enable anytime from this menu — all routes are preserved.${NC}"
+            else
+                err "Reload failed"
+                state_set "enabled_443" "1"; state_set "enabled_80" "1"
+                apply_config || true
+            fi
             ;;
         *) warn "Cancelled." ;;
     esac
