@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.8  — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.11 — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,8 +30,9 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.10"
+VERSION="2.2.11"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
+REPO_API="https://api.github.com/repos/alaaabd90/sni/contents/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
 #  HELPERS
@@ -664,9 +665,18 @@ action_update() {
 
     local tmp
     tmp=$(mktemp)
-    if ! curl -fsSL --connect-timeout 15 "${REPO_RAW}?nocache=$(date +%s)" -o "$tmp" 2>/dev/null; then
+    trap "rm -f '$tmp'" RETURN
+
+    if ! curl -fsSL --connect-timeout 15 --max-time 60 "${REPO_RAW}?nocache=$(date +%s)" -o "$tmp" 2>/dev/null; then
+        warn "CDN unavailable — trying GitHub API..."
+        : > "$tmp"
+        curl -fsSL --connect-timeout 15 --max-time 60 \
+            -H "Accept: application/vnd.github.raw+json" \
+            -o "$tmp" "$REPO_API" 2>/dev/null || true
+    fi
+
+    if [[ ! -s "$tmp" ]]; then
         err "Download failed — check internet connection"
-        rm -f "$tmp"
         pause
         return
     fi
@@ -942,7 +952,7 @@ SVCEOF
         info "Script installed from local file."
     else
         info "Downloading script from GitHub..."
-        if ! curl -fsSL --connect-timeout 15 "$REPO_RAW" -o "$SCRIPT_DEST" 2>/dev/null; then
+        if ! curl -fsSL --connect-timeout 15 "${REPO_RAW}?nocache=$(date +%s)" -o "$SCRIPT_DEST" 2>/dev/null; then
             err "Download failed — install script manually from: $REPO_RAW"
             exit 1
         fi
