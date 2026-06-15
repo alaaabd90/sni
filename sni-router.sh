@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.16 — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.17 — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
