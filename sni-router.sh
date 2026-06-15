@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.5  — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.6  — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.5"
+VERSION="2.2.6"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -815,7 +815,6 @@ do_clean_old() {
 # ─────────────────────────────────────────────────────────────────
 do_install() {
     root_check
-    [[ -t 0 ]] || { err "Interactive terminal required for install. Run: bash <(curl -fsSL ${REPO_RAW}) --install"; exit 1; }
     print_header
     title "  Installing SNI+HOST Router v${VERSION}..."
     divider
