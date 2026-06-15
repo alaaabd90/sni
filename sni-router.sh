@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.9"
+VERSION="2.2.10"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 
 # ─────────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ GLOBAL
             echo "    bind *:443"
             echo "    mode tcp"
             echo "    option tcplog"
-            echo "    tcp-request inspect-delay 3s"
+            echo "    tcp-request inspect-delay 1s"
             echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
             # Reject non-TLS before use_backend (correct HAProxy ordering — no warning)
             if [[ -z "$def443" ]]; then
