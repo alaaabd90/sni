@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.16"
+VERSION="2.2.17"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 REPO_API="https://api.github.com/repos/alaaabd90/sni/contents/sni-router.sh"
 
@@ -740,7 +740,11 @@ action_update() {
     fi
 
     chmod +x "$tmp"
-    cp "$tmp" "$SCRIPT_DEST"
+    if ! cp "$tmp" "$SCRIPT_DEST"; then
+        err "Failed to write update — check disk space on $(dirname "$SCRIPT_DEST")"
+        pause
+        return
+    fi
     chmod +x "$SCRIPT_DEST"
     ln -sf "$SCRIPT_DEST" "$CMD_LINK"
     rm -f "$tmp"
