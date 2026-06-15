@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║        SNI + HOST Port Multiplexer  v2.2.11 — by acrnm          ║
+# ║        SNI + HOST Port Multiplexer  v2.2.12 — by acrnm          ║
 # ║  Port 443 → SNI-based routing  (REALITY/WS-TLS/XHTTP/gRPC)     ║
 # ║  Port 80  → Host-based routing (WS/XHTTP/gRPC plaintext)       ║
 # ║  Enable/Disable each port independently at any time             ║
@@ -30,7 +30,7 @@ CMD_LINK="/usr/local/bin/sni"
 SCRIPT_DEST="/usr/local/sbin/sni-router.sh"
 LOG_FILE="/var/log/sni-router.log"
 IP_CACHE="$CONF_DIR/.server_ip"
-VERSION="2.2.11"
+VERSION="2.2.12"
 REPO_RAW="https://raw.githubusercontent.com/alaaabd90/sni/main/sni-router.sh"
 REPO_API="https://api.github.com/repos/alaaabd90/sni/contents/sni-router.sh"
 
@@ -712,7 +712,13 @@ action_update() {
     fi
 
     echo ""
-    read -rp "  Update to v${new_ver}? [y/N]: " ok
+    local ok
+    if [[ -t 0 ]]; then
+        read -rp "  Update to v${new_ver}? [y/N]: " ok
+    else
+        ok="y"
+        info "Non-interactive — auto-confirming update"
+    fi
     if [[ "$ok" != "y" && "$ok" != "Y" ]]; then
         warn "Cancelled."
         rm -f "$tmp"
@@ -726,9 +732,11 @@ action_update() {
     ln -sf "$SCRIPT_DEST" "$CMD_LINK"
     rm -f "$tmp"
     info "Updated to v${new_ver}!"
-    echo -e "  ${DIM}Restarting with new version...${NC}"
-    sleep 1
-    exec "$CMD_LINK"
+    if [[ -t 0 ]]; then
+        echo -e "  ${DIM}Restarting with new version...${NC}"
+        sleep 1
+        exec "$CMD_LINK"
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────
